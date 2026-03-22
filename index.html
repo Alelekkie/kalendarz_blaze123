@@ -5,24 +5,125 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plan zadań</title>
 <style>
-body{font-family:Arial;margin:0;background:#111;color:#fff}
-header{display:flex;justify-content:space-between;align-items:center;padding:15px;background:#000}
-button{padding:10px 15px;border:none;border-radius:8px;cursor:pointer}
-#addBtn{background:hotpink;color:#000}
-#archiveBtn{background:#555;color:#fff}
-.container{padding:15px}
-.task{padding:12px;margin-bottom:10px;border-radius:10px;cursor:pointer}
-.red{background:#ff3b3b}
-.orange{background:#ff9d00}
-.green{background:#2ecc71}
-.gray{background:#555}
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #111;
+    color: #fff;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #000;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#addBtn {
+    background: hotpink;
+    color: #000;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+#archiveBtn {
+    background: #555;
+    color: #fff;
+}
+
+.container {
+    padding: 15px;
+}
+
+.task {
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.red { background: #ff3b3b; }
+.orange { background: #ff9d00; }
+.green { background: #2ecc71; }
+.gray { background: #555; }
+
 .hidden { display: none !important; }
-.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center}
-.modal-content{background:#222;padding:20px;border-radius:10px;width:300px}
-input,textarea{width:95%;margin-bottom:10px;padding:8px;border-radius:5px;border:none}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: none; /* DOMYŚLNIE UKRYTY */
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #222;
+    padding: 20px;
+    border-radius: 12px;
+    width: 320px;
+    box-shadow: 0 4px 15px rgba(255,20,147,0.4);
+}
+
+input, textarea {
+    width: 90%;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 2px solid hotpink;
+    background: #222;
+    color: #fff;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    border-color: deeppink;
+    box-shadow: 0 0 10px hotpink;
+}
+
+/* Przycisk Zapisz */
+#saveBtn {
+    width: 100%;
+    padding: 12px 0;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, hotpink, deeppink);
+    color: #fff;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(255,20,147,0.4);
+}
+
+#saveBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255,20,147,0.6);
+}
+
+#saveBtn:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 6px rgba(255,20,147,0.4);
+}
 </style>
 </head>
 <body>
+
 <header>
 <button id="addBtn">+</button>
 <h2>ZADANIA</h2>
@@ -33,12 +134,12 @@ input,textarea{width:95%;margin-bottom:10px;padding:8px;border-radius:5px;border
 <div class="container hidden" id="archiveList"></div>
 
 <div class="modal hidden" id="modal">
-<div class="modal-content">
-<h3>DODAJ NOWE ZADANIE</h3>
-<input type="datetime-local" id="date">
-<textarea id="desc" placeholder="Opis"></textarea>
-<button id="saveBtn">Zapisz</button>
-</div>
+  <div class="modal-content">
+    <h3>DODAJ NOWE ZADANIE</h3>
+    <input type="datetime-local" id="date">
+    <textarea id="desc" placeholder="Opis"></textarea>
+    <button id="saveBtn">Zapisz</button>
+  </div>
 </div>
 
 <script type="module">
@@ -60,10 +161,11 @@ const db = getFirestore(app);
 
 let showArchive = false;
 
-async function render(){
+// Renderowanie zadań
+async function render() {
     const now = new Date();
     const snapshot = await getDocs(collection(db, "tasks"));
-    const tasks = snapshot.docs.map(d => ({id:d.id,...d.data()}));
+    const tasks = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
 
     const taskList = document.getElementById('taskList');
     const archiveList = document.getElementById('archiveList');
@@ -82,7 +184,7 @@ async function render(){
         else active.push(task);
     }
 
-    active.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    active.sort((a,b) => new Date(a.date)-new Date(b.date));
 
     const today = new Date();
     const sevenDaysLater = new Date();
@@ -114,6 +216,8 @@ async function render(){
         el.innerHTML = `<b>${new Date(task.date).toLocaleString()}</b><br>${task.desc}`;
         archiveList.appendChild(el);
     });
+
+    archiveList.style.display = showArchive ? 'block' : 'none';
 }
 
 // Dodawanie zadania
@@ -126,11 +230,20 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     render();
 });
 
-function openModal(){const m=document.getElementById('modal');m.classList.remove('hidden');m.style.display='flex';}
-function closeModal(){const m=document.getElementById('modal');m.classList.add('hidden');m.style.display='none';}
+// Modal
+function openModal(){
+    const m = document.getElementById('modal');
+    m.classList.remove('hidden');
+    m.style.display = 'flex';
+}
+function closeModal(){
+    const m = document.getElementById('modal');
+    m.classList.add('hidden');
+    m.style.display = 'none';
+}
 
-document.getElementById('addBtn').onclick=openModal;
-document.getElementById('archiveBtn').onclick=()=>{
+document.getElementById('addBtn').onclick = openModal;
+document.getElementById('archiveBtn').onclick = () => {
     showArchive = !showArchive;
     document.getElementById('archiveList').classList.toggle('hidden');
 };
@@ -138,5 +251,6 @@ document.getElementById('archiveBtn').onclick=()=>{
 setInterval(render,5000);
 render();
 </script>
+
 </body>
 </html>
