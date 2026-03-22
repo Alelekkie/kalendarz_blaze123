@@ -1,0 +1,20 @@
+{
+  "name": "Plan zadań",
+  "short_name": "Zadania",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#ff1493",
+  "icons": [
+    {
+      "src": "plan192.png",
+      "sizes": "192x192",
+      "type": "png"
+    },
+    {
+      "src": "plan512.png",
+      "sizes": "512x512",
+      "type": "png"
+    }
+  ]
+}
