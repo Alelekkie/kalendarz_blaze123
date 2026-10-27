@@ -223,7 +223,6 @@
 
 <!-- OKNO DODAWANIA ZADANIA -->
 <div class="modal" id="modal">
-
     <div class="modal-content">
 
         <h3>DODAJ NOWE ZADANIE</h3>
@@ -238,16 +237,11 @@
             placeholder="Opis zadania"
         ></textarea>
 
-        <button id="saveBtn">
-            Zapisz
-        </button>
+        <button id="saveBtn">Zapisz</button>
 
-        <button id="closeBtn">
-            Anuluj
-        </button>
+        <button id="closeBtn">Anuluj</button>
 
     </div>
-
 </div>
 
 <script type="module">
@@ -263,11 +257,10 @@
         getFirestore,
         collection,
         addDoc,
-        getDocs,
+        onSnapshot,
         updateDoc,
         doc
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
 
     const firebaseConfig = {
         apiKey: "AIzaSyAryTIyJW1pEfye1zWxwNSZZxR7fiPjQFc",
@@ -277,7 +270,6 @@
         messagingSenderId: "227083875151",
         appId: "1:227083875151:web:23a7b40e43654015998b3a"
     };
-
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -299,11 +291,14 @@
     const closeBtn = document.getElementById("closeBtn");
 
     let showArchive = false;
-    let isRendering = false;
+    let firstLoad = true;
+
+    // Zapobiega wielokrotnemu archiwizowaniu tego samego zadania.
+    const archivingIds = new Set();
 
 
     // =====================================================
-    // OBSŁUGA BŁĘDÓW
+    // KOMUNIKATY BŁĘDÓW
     // =====================================================
 
     function showError(message) {
@@ -395,7 +390,6 @@
         const br = document.createElement("br");
 
         const descElement = document.createElement("span");
-
         const description = String(task.desc || "");
 
         descElement.textContent = archived
@@ -406,7 +400,7 @@
         el.appendChild(br);
         el.appendChild(descElement);
 
-        // Kliknięcie pokazuje cały opis zadania
+        // Kliknięcie zadania pokazuje pełną datę i opis.
         el.addEventListener("click", function() {
             alert(
                 formatDate(task.date) +
@@ -420,27 +414,159 @@
 
 
     // =====================================================
-    // POBIERANIE I WYŚWIETLANIE ZADAŃ
+    // WYŚWIETLANIE ZADAŃ
     // =====================================================
 
-    async function render() {
+    function displayTasks(tasks) {
+        const now = new Date();
 
-        // Zapobiega nakładaniu się kilku odświeżeń naraz
-        if (isRendering) {
-            return;
+        const active = [];
+        const archive = [];
+
+        for (const task of tasks) {
+            if (task.done === true) {
+                archive.push(task);
+            } else {
+                active.push(task);
+            }
         }
 
-        isRendering = true;
+        // Sortowanie aktywnych według terminu.
+        active.sort(function(a, b) {
+            return new Date(a.date) - new Date(b.date);
+        });
 
-        try {
-            hideError();
+        // Najnowsze terminy archiwalne na górze.
+        archive.sort(function(a, b) {
+            return new Date(b.date) - new Date(a.date);
+        });
 
-            taskList.innerHTML =
-                '<div class="loading">Ładowanie...</div>';
+        // Zadania z terminem w ciągu najbliższych 7 dni.
+        const sevenDaysLater = new Date();
+        sevenDaysLater.setDate(now.getDate() + 7);
 
-            const snapshot = await getDocs(
-                collection(db, "tasks")
+        const upcoming7 = active.filter(function(task) {
+            const date = new Date(task.date);
+
+            return date >= now && date <= sevenDaysLater;
+        });
+
+        // -------------------------------------------------
+        // AKTYWNE ZADANIA
+        // -------------------------------------------------
+
+        const activeFragment = document.createDocumentFragment();
+
+        if (active.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "empty";
+            empty.textContent = "Brak aktywnych zadań";
+            activeFragment.appendChild(empty);
+        }
+
+        active.forEach(function(task) {
+            const el = createTaskElement(task);
+            const index = upcoming7.indexOf(task);
+
+            if (index !== -1) {
+                if (index < 3) {
+                    el.classList.add("red");
+                } else if (index < 7) {
+                    el.classList.add("orange");
+                } else {
+                    el.classList.add("green");
+                }
+            } else {
+                el.classList.add("green");
+            }
+
+            activeFragment.appendChild(el);
+        });
+
+        taskList.replaceChildren(activeFragment);
+
+
+        // -------------------------------------------------
+        // ARCHIWUM
+        // -------------------------------------------------
+
+        const archiveFragment = document.createDocumentFragment();
+
+        if (archive.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "empty";
+            empty.textContent = "Archiwum jest puste";
+            archiveFragment.appendChild(empty);
+        }
+
+        archive.forEach(function(task) {
+            archiveFragment.appendChild(
+                createTaskElement(task, true)
             );
+        });
+
+        archiveList.replaceChildren(archiveFragment);
+
+        // Zachowuje aktualny stan przycisku archiwum.
+        archiveList.classList.toggle("hidden", !showArchive);
+
+        archiveBtn.textContent = showArchive
+            ? "Ukryj archiwum"
+            : "Archiwum";
+    }
+
+
+    // =====================================================
+    // AUTOMATYCZNA ARCHIWIZACJA
+    // =====================================================
+
+    async function archiveExpiredTasks(tasks) {
+        const now = new Date();
+
+        for (const task of tasks) {
+            const taskDate = new Date(task.date);
+
+            if (
+                task.done !== true &&
+                !Number.isNaN(taskDate.getTime()) &&
+                taskDate < now &&
+                !archivingIds.has(task.id)
+            ) {
+                archivingIds.add(task.id);
+
+                try {
+                    await updateDoc(
+                        doc(db, "tasks", task.id),
+                        {
+                            done: true
+                        }
+                    );
+                } catch (error) {
+                    showFirebaseError(
+                        "Nie udało się przenieść zadania do archiwum.",
+                        error
+                    );
+                } finally {
+                    archivingIds.delete(task.id);
+                }
+            }
+        }
+    }
+
+
+    // =====================================================
+    // NASŁUCHIWANIE ZMIAN FIREBASE
+    // =====================================================
+
+    // Firebase wysyła aktualizację tylko wtedy, gdy dane się
+    // zmienią. Nie ma odświeżania co 5 sekund ani migania
+    // komunikatu „Ładowanie...”.
+
+    onSnapshot(
+        collection(db, "tasks"),
+
+        function(snapshot) {
+            hideError();
 
             const tasks = snapshot.docs.map(function(item) {
                 return {
@@ -449,152 +575,24 @@
                 };
             });
 
-            const now = new Date();
+            // Wyświetlamy aktualne dane bez napisu „Ładowanie...”.
+            displayTasks(tasks);
 
-            const active = [];
-            const archive = [];
+            firstLoad = false;
 
-            // -------------------------------------------------
-            // ARCHIWIZACJA ZADAŃ, KTÓRYCH TERMIN MINĄŁ
-            // -------------------------------------------------
+            // Sprawdzamy terminy w tle.
+            archiveExpiredTasks(tasks);
+        },
 
-            for (const task of tasks) {
-
-                const taskDate = new Date(task.date);
-
-                if (
-                    !task.done &&
-                    !Number.isNaN(taskDate.getTime()) &&
-                    taskDate < now
-                ) {
-
-                    try {
-                        await updateDoc(
-                            doc(db, "tasks", task.id),
-                            {
-                                done: true
-                            }
-                        );
-
-                        task.done = true;
-
-                    } catch (error) {
-                        // Jeśli zapis archiwizacji się nie uda,
-                        // pokazujemy błąd zamiast go ukrywać.
-                        console.error(
-                            "Nie udało się zarchiwizować zadania:",
-                            error
-                        );
-                    }
-                }
-
-                if (task.done === true) {
-                    archive.push(task);
-                } else {
-                    active.push(task);
-                }
-            }
-
-
-            // =================================================
-            // SORTOWANIE ZADAŃ
-            // =================================================
-
-            active.sort(function(a, b) {
-                return new Date(a.date) - new Date(b.date);
-            });
-
-            archive.sort(function(a, b) {
-                return new Date(b.date) - new Date(a.date);
-            });
-
-
-            // =================================================
-            // KOLORY ZADAŃ
-            // =================================================
-
-            const upcoming7 = active.filter(function(task) {
-                const d = new Date(task.date);
-                const today = new Date();
-                const sevenDaysLater = new Date();
-
-                sevenDaysLater.setDate(
-                    today.getDate() + 7
-                );
-
-                return d >= today && d <= sevenDaysLater;
-            });
-
-
-            // =================================================
-            // WYŚWIETLANIE AKTYWNYCH ZADAŃ
-            // =================================================
-
-            taskList.innerHTML = "";
-
-            if (active.length === 0) {
-                taskList.innerHTML =
-                    '<div class="empty">Brak aktywnych zadań</div>';
-            }
-
-            active.forEach(function(task) {
-
-                const el = createTaskElement(task);
-
-                const index = upcoming7.indexOf(task);
-
-                if (index !== -1) {
-
-                    if (index < 3) {
-                        el.classList.add("red");
-                    } else if (index < 7) {
-                        el.classList.add("orange");
-                    } else {
-                        el.classList.add("green");
-                    }
-
-                } else {
-                    el.classList.add("green");
-                }
-
-                taskList.appendChild(el);
-            });
-
-
-            // =================================================
-            // WYŚWIETLANIE ARCHIWUM
-            // =================================================
-
-            archiveList.innerHTML = "";
-
-            if (archive.length === 0) {
-                archiveList.innerHTML =
-                    '<div class="empty">Archiwum jest puste</div>';
-            }
-
-            archive.forEach(function(task) {
-                const el = createTaskElement(task, true);
-                archiveList.appendChild(el);
-            });
-
-            archiveList.classList.toggle(
-                "hidden",
-                !showArchive
-            );
-
-        } catch (error) {
-
-            taskList.innerHTML = "";
+        function(error) {
+            firstLoad = false;
 
             showFirebaseError(
                 "Nie udało się pobrać zadań z Firebase.",
                 error
             );
-
-        } finally {
-            isRendering = false;
         }
-    }
+    );
 
 
     // =====================================================
@@ -602,7 +600,6 @@
     // =====================================================
 
     saveBtn.addEventListener("click", async function() {
-
         const date = dateInput.value;
         const desc = descInput.value.trim();
 
@@ -620,7 +617,6 @@
         saveBtn.textContent = "Zapisywanie...";
 
         try {
-
             hideError();
 
             await addDoc(
@@ -633,12 +629,10 @@
                 }
             );
 
+            // Lista zmieni się automatycznie dzięki onSnapshot.
             closeModal();
 
-            await render();
-
         } catch (error) {
-
             showFirebaseError(
                 "Nie udało się zapisać zadania w Firebase.",
                 error
@@ -647,14 +641,13 @@
             alert(
                 "Nie udało się zapisać zadania.\n\n" +
                 "Kod: " + (error.code || "brak kodu") +
-                "\nSzczegóły: " + (error.message || String(error))
+                "\nSzczegóły: " +
+                (error.message || String(error))
             );
 
         } finally {
-
             saveBtn.disabled = false;
             saveBtn.textContent = "Zapisz";
-
         }
     });
 
@@ -664,7 +657,6 @@
     // =====================================================
 
     archiveBtn.addEventListener("click", function() {
-
         showArchive = !showArchive;
 
         archiveList.classList.toggle(
@@ -676,18 +668,6 @@
             ? "Ukryj archiwum"
             : "Archiwum";
     });
-
-
-    // =====================================================
-    // START APLIKACJI
-    // =====================================================
-
-    render();
-
-    // Odświeżanie listy co 5 sekund
-    setInterval(function() {
-        render();
-    }, 5000);
 
 </script>
 
