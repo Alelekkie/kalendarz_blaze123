@@ -1,270 +1,1200 @@
+```html
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
+
     <link rel="apple-touch-icon" sizes="180x180" href="plan.png">
-    <!-- Manifest -->
-<link rel="manifest" href="/manifest.json">
 
-<!-- Kolor paska na iOS -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.json">
 
-<!-- Tytuł aplikacji na iOS -->
-<meta name="apple-mobile-web-app-title" content="Plan zadań">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Plan zadań">
+
+    <meta name="theme-color" content="#ff1493">
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Plan zadań</title>
 
 
-<!-- Kolor paska przeglądarki na Android -->
-<meta name="theme-color" content="#ff1493">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plan zadań</title>
-<style>
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    background: #111;
-    color: #fff;
-}
+    <style>
 
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: #000;
-}
+        * {
+            box-sizing: border-box;
+        }
 
-button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
 
-#addBtn {
-    background: hotpink;
-    color: #000;
-    font-weight: bold;
-    font-size: 18px;
-}
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #111;
+            color: #fff;
+        }
 
-#archiveBtn {
-    background: #555;
-    color: #fff;
-}
 
-.container {
-    padding: 15px;
-}
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #000;
+        }
 
-.task {
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 10px;
-    cursor: pointer;
-}
 
-.red { background: #ff3b3b; }
-.orange { background: #ff9d00; }
-.green { background: #2ecc71; }
-.gray { background: #555; }
+        header h2 {
+            margin: 0;
+            text-align: center;
+            flex: 1;
+        }
 
-.hidden { display: none !important; }
 
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.8);
-    display: none; /* DOMYŚLNIE UKRYTY */
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+        }
 
-.modal-content {
-    background: #222;
-    padding: 20px;
-    border-radius: 12px;
-    width: 320px;
-    box-shadow: 0 4px 15px rgba(255,20,147,0.4);
-}
 
-input, textarea {
-    width: 90%;
-    margin-bottom: 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 2px solid hotpink;
-    background: #222;
-    color: #fff;
-    font-size: 16px;
-    transition: all 0.3s ease;
-}
+        #addBtn {
+            background: hotpink;
+            color: #000;
+            font-weight: bold;
+            font-size: 24px;
+            width: 50px;
+            height: 45px;
+        }
 
-input:focus, textarea:focus {
-    outline: none;
-    border-color: deeppink;
-    box-shadow: 0 0 10px hotpink;
-}
 
-/* Przycisk Zapisz */
-#saveBtn {
-    width: 100%;
-    padding: 12px 0;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(135deg, hotpink, deeppink);
-    color: #fff;
-    font-weight: bold;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(255,20,147,0.4);
-}
+        #addBtn:active {
+            transform: scale(0.95);
+        }
 
-#saveBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(255,20,147,0.6);
-}
 
-#saveBtn:active {
-    transform: translateY(0);
-    box-shadow: 0 3px 6px rgba(255,20,147,0.4);
-}
-</style>
+        #archiveBtn {
+            background: #555;
+            color: #fff;
+            font-size: 14px;
+        }
+
+
+        #archiveBtn:active {
+            transform: scale(0.95);
+        }
+
+
+        .container {
+            padding: 15px;
+        }
+
+
+        .task {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: #fff;
+            word-wrap: break-word;
+        }
+
+
+        .task b {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+
+        .red {
+            background: #ff3b3b;
+        }
+
+
+        .orange {
+            background: #ff9d00;
+        }
+
+
+        .green {
+            background: #2ecc71;
+        }
+
+
+        .gray {
+            background: #555;
+        }
+
+
+        .hidden {
+            display: none !important;
+        }
+
+
+        /* =========================
+           POPUP
+        ========================= */
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+
+            width: 100%;
+            height: 100%;
+
+            background: rgba(0, 0, 0, 0.85);
+
+            display: none;
+
+            align-items: center;
+            justify-content: center;
+
+            z-index: 1000;
+
+            padding: 20px;
+        }
+
+
+        .modal-content {
+            background: #222;
+
+            padding: 20px;
+
+            border-radius: 12px;
+
+            width: 100%;
+            max-width: 380px;
+
+            box-shadow:
+                0 4px 20px rgba(255, 20, 147, 0.5);
+        }
+
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+
+        input,
+        textarea {
+
+            width: 100%;
+
+            margin-bottom: 12px;
+
+            padding: 10px 12px;
+
+            border-radius: 10px;
+
+            border: 2px solid hotpink;
+
+            background: #222;
+
+            color: #fff;
+
+            font-size: 16px;
+
+            font-family: Arial, sans-serif;
+
+            transition: all 0.3s ease;
+
+        }
+
+
+        textarea {
+
+            min-height: 120px;
+
+            resize: vertical;
+
+        }
+
+
+        input:focus,
+        textarea:focus {
+
+            outline: none;
+
+            border-color: deeppink;
+
+            box-shadow:
+                0 0 10px hotpink;
+
+        }
+
+
+        /* =========================
+           ZAPISZ
+        ========================= */
+
+        #saveBtn {
+
+            width: 100%;
+
+            padding: 12px 0;
+
+            border: none;
+
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    hotpink,
+                    deeppink
+                );
+
+            color: #fff;
+
+            font-weight: bold;
+
+            font-size: 16px;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 4px 8px rgba(255, 20, 147, 0.4);
+
+        }
+
+
+        #saveBtn:hover {
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 6px 12px rgba(255, 20, 147, 0.6);
+
+        }
+
+
+        #saveBtn:disabled {
+
+            opacity: 0.6;
+
+            cursor: wait;
+
+            transform: none;
+
+        }
+
+
+        /* =========================
+           ZAMKNIĘCIE POPUPU
+        ========================= */
+
+        #closeBtn {
+
+            width: 100%;
+
+            margin-top: 10px;
+
+            background: #444;
+
+            color: white;
+
+            padding: 10px;
+
+        }
+
+
+        /* =========================
+           KOMUNIKAT
+        ========================= */
+
+        #status {
+
+            display: none;
+
+            margin-bottom: 15px;
+
+            padding: 12px;
+
+            border-radius: 8px;
+
+            font-size: 14px;
+
+        }
+
+
+        #status.error {
+
+            display: block;
+
+            background: #8b0000;
+
+        }
+
+
+        #status.success {
+
+            display: block;
+
+            background: #176b32;
+
+        }
+
+
+    </style>
+
 </head>
+
+
 <body>
 
+
 <header>
-<button id="addBtn">+</button>
-<h2>ZADANIA</h2>
-<button id="archiveBtn">Archiwum</button>
+
+    <button id="addBtn">+</button>
+
+    <h2>ZADANIA</h2>
+
+    <button id="archiveBtn">
+        Archiwum
+    </button>
+
 </header>
 
-<div class="container" id="taskList"></div>
-<div class="container hidden" id="archiveList"></div>
 
-<div class="modal hidden" id="modal">
-  <div class="modal-content">
-    <h3>DODAJ NOWE ZADANIE</h3>
-    <input type="datetime-local" id="date">
-    <textarea id="desc" placeholder="Opis"></textarea>
-    <button id="saveBtn">Zapisz</button>
-  </div>
+<!-- =========================
+     LISTA ZADAŃ
+========================= -->
+
+<div
+    class="container"
+    id="taskList">
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Firebase config
+<!-- =========================
+     ARCHIWUM
+========================= -->
+
+<div
+    class="container hidden"
+    id="archiveList">
+</div>
+
+
+<!-- =========================
+     POPUP
+========================= -->
+
+<div
+    class="modal"
+    id="modal"
+>
+
+    <div class="modal-content">
+
+        <h3>
+            DODAJ NOWE ZADANIE
+        </h3>
+
+
+        <div id="status"></div>
+
+
+        <label>
+            Data i godzina
+        </label>
+
+        <input
+            type="datetime-local"
+            id="date"
+        >
+
+
+        <label>
+            Opis
+        </label>
+
+        <textarea
+            id="desc"
+            placeholder="Opis zadania..."
+        ></textarea>
+
+
+        <button
+            id="saveBtn"
+        >
+            Zapisz
+        </button>
+
+
+        <button
+            id="closeBtn"
+        >
+            Anuluj
+        </button>
+
+    </div>
+
+</div>
+
+
+<script type="module">
+
+
+/* =====================================================
+   FIREBASE
+===================================================== */
+
+import {
+    initializeApp
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    updateDoc,
+    doc
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+
 const firebaseConfig = {
-  apiKey: "AIzaSyAryTIyJW1pEfye1zWxwNSZZxR7fiPjQFc",
-  authDomain: "kalendarz-af3d4.firebaseapp.com",
-  projectId: "kalendarz-af3d4",
-  storageBucket: "kalendarz-af3d4.firebasestorage.app",
-  messagingSenderId: "227083875151",
-  appId: "1:227083875151:web:23a7b40e43654015998b3a"
+
+    apiKey:
+        "AIzaSyAryTIyJW1pEfye1zWxwNSZZR7fiPjQFc",
+
+    authDomain:
+        "kalendarz-af3d4.firebaseapp.com",
+
+    projectId:
+        "kalendarz-af3d4",
+
+    storageBucket:
+        "kalendarz-af3d4.firebasestorage.app",
+
+    messagingSenderId:
+        "227083875151",
+
+    appId:
+        "1:227083875151:web:23a7b40e43654015998b3a"
+
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+
+const app =
+    initializeApp(firebaseConfig);
+
+
+const db =
+    getFirestore(app);
+
+
+
+/* =====================================================
+   ELEMENTY
+===================================================== */
+
+const addBtn =
+    document.getElementById("addBtn");
+
+const archiveBtn =
+    document.getElementById("archiveBtn");
+
+const saveBtn =
+    document.getElementById("saveBtn");
+
+const closeBtn =
+    document.getElementById("closeBtn");
+
+const modal =
+    document.getElementById("modal");
+
+const dateInput =
+    document.getElementById("date");
+
+const descInput =
+    document.getElementById("desc");
+
+const taskList =
+    document.getElementById("taskList");
+
+const archiveList =
+    document.getElementById("archiveList");
+
+const status =
+    document.getElementById("status");
+
 
 let showArchive = false;
 
-// Renderowanie zadań
-async function render() {
-    const now = new Date();
-    const snapshot = await getDocs(collection(db, "tasks"));
-    const tasks = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
 
-    const taskList = document.getElementById('taskList');
-    const archiveList = document.getElementById('archiveList');
-    taskList.innerHTML = '';
-    archiveList.innerHTML = '';
 
-    let active = [];
-    let archive = [];
+/* =====================================================
+   STATUS
+===================================================== */
 
-    for(const task of tasks){
-        if(new Date(task.date) < now && !task.done){
-            await updateDoc(doc(db,"tasks",task.id), {done:true});
-            task.done = true;
+function showStatus(message, type) {
+
+    status.textContent = message;
+
+    status.className = type;
+
+}
+
+
+function hideStatus() {
+
+    status.textContent = "";
+
+    status.className = "";
+
+}
+
+
+
+/* =====================================================
+   OTWÓRZ POPUP
+===================================================== */
+
+addBtn.addEventListener(
+    "click",
+    () => {
+
+        hideStatus();
+
+        modal.style.display = "flex";
+
+        dateInput.focus();
+
+    }
+);
+
+
+
+/* =====================================================
+   ZAMKNIJ POPUP
+===================================================== */
+
+closeBtn.addEventListener(
+    "click",
+    () => {
+
+        modal.style.display = "none";
+
+    }
+);
+
+
+
+/* Kliknięcie poza popupem */
+
+modal.addEventListener(
+    "click",
+    (event) => {
+
+        if (
+            event.target === modal
+        ) {
+
+            modal.style.display = "none";
+
         }
-        if(task.done) archive.push(task);
-        else active.push(task);
+
+    }
+);
+
+
+
+/* =====================================================
+   ZAPISZ ZADANIE
+===================================================== */
+
+saveBtn.addEventListener(
+    "click",
+    async () => {
+
+
+        const date =
+            dateInput.value.trim();
+
+
+        const desc =
+            descInput.value.trim();
+
+
+        console.log(
+            "Zapis zadania:",
+            date,
+            desc
+        );
+
+
+        /* Walidacja */
+
+        if (!date) {
+
+            showStatus(
+                "Wybierz datę i godzinę.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if (!desc) {
+
+            showStatus(
+                "Wpisz opis zadania.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        saveBtn.disabled = true;
+
+        saveBtn.textContent =
+            "Zapisywanie...";
+
+
+        try {
+
+
+            /* =========================
+               ZAPIS DO FIREBASE
+            ========================= */
+
+            const result =
+                await addDoc(
+                    collection(
+                        db,
+                        "tasks"
+                    ),
+                    {
+
+                        date: date,
+
+                        desc: desc,
+
+                        done: false,
+
+                        createdAt:
+                            new Date()
+                                .toISOString()
+
+                    }
+                );
+
+
+            console.log(
+                "Zapisano:",
+                result.id
+            );
+
+
+            /* =========================
+               CZYSZCZENIE
+            ========================= */
+
+            dateInput.value = "";
+
+            descInput.value = "";
+
+
+            /* =========================
+               ZAMKNIJ POPUP
+            ========================= */
+
+            modal.style.display =
+                "none";
+
+
+            /* =========================
+               ODŚWIEŻ LISTĘ
+            ========================= */
+
+            await render();
+
+
+        }
+        catch (error) {
+
+
+            console.error(
+                "BŁĄD FIREBASE:",
+                error
+            );
+
+
+            showStatus(
+                "Nie udało się zapisać zadania: "
+                + error.message,
+                "error"
+            );
+
+
+            /*
+             * UWAGA:
+             * Jeśli tutaj pojawi się:
+             *
+             * Missing or insufficient permissions
+             *
+             * oznacza to problem z Firestore Rules.
+             */
+
+
+        }
+        finally {
+
+
+            saveBtn.disabled =
+                false;
+
+
+            saveBtn.textContent =
+                "Zapisz";
+
+        }
+
+    }
+);
+
+
+
+/* =====================================================
+   RENDER
+===================================================== */
+
+async function render() {
+
+
+    try {
+
+
+        console.log(
+            "Pobieranie zadań..."
+        );
+
+
+        const snapshot =
+            await getDocs(
+                collection(
+                    db,
+                    "tasks"
+                )
+            );
+
+
+        console.log(
+            "Liczba zadań:",
+            snapshot.size
+        );
+
+
+        taskList.innerHTML = "";
+
+        archiveList.innerHTML = "";
+
+
+        const now =
+            new Date();
+
+
+        let active = [];
+
+        let archive = [];
+
+
+        /* =========================
+           PODZIAŁ ZADAŃ
+        ========================= */
+
+        snapshot.forEach(
+            (item) => {
+
+
+                const task = {
+
+                    id: item.id,
+
+                    ...item.data()
+
+                };
+
+
+                /*
+                 * Zadanie po terminie
+                 * automatycznie trafia
+                 * do archiwum.
+                 */
+
+                if (
+                    new Date(task.date)
+                    < now
+                    &&
+                    task.done !== true
+                ) {
+
+                    task.done = true;
+
+
+                    updateDoc(
+                        doc(
+                            db,
+                            "tasks",
+                            task.id
+                        ),
+                        {
+                            done: true
+                        }
+                    );
+
+                }
+
+
+                if (
+                    task.done === true
+                ) {
+
+                    archive.push(task);
+
+                }
+                else {
+
+                    active.push(task);
+
+                }
+
+            }
+        );
+
+
+
+        /* =========================
+           SORTOWANIE
+        ========================= */
+
+        active.sort(
+            (a, b) =>
+                new Date(a.date)
+                -
+                new Date(b.date)
+        );
+
+
+        archive.sort(
+            (a, b) =>
+                new Date(b.date)
+                -
+                new Date(a.date)
+        );
+
+
+
+        /* =========================
+           AKTYWNE ZADANIA
+        ========================= */
+
+        active.forEach(
+            (task, index) => {
+
+
+                const element =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                element.classList.add(
+                    "task"
+                );
+
+
+                /*
+                 * Kolory:
+                 *
+                 * pierwsze 3 = czerwone
+                 * kolejne 4 = pomarańczowe
+                 * reszta = zielone
+                 */
+
+                if (index < 3) {
+
+                    element.classList.add(
+                        "red"
+                    );
+
+                }
+                else if (index < 7) {
+
+                    element.classList.add(
+                        "orange"
+                    );
+
+                }
+                else {
+
+                    element.classList.add(
+                        "green"
+                    );
+
+                }
+
+
+                const date =
+                    new Date(
+                        task.date
+                    ).toLocaleString(
+                        "pl-PL"
+                    );
+
+
+                element.innerHTML =
+                    `
+                    <b>${date}</b>
+                    <br>
+                    ${escapeHTML(task.desc)}
+                    `;
+
+
+                element.addEventListener(
+                    "click",
+                    () => {
+
+                        alert(
+                            task.desc
+                        );
+
+                    }
+                );
+
+
+                taskList.appendChild(
+                    element
+                );
+
+            }
+        );
+
+
+
+        /* =========================
+           ARCHIWUM
+        ========================= */
+
+        if (
+            archive.length === 0
+        ) {
+
+            archiveList.innerHTML =
+                `
+                <div class="task gray">
+                    Brak zarchiwizowanych zadań.
+                </div>
+                `;
+
+        }
+        else {
+
+
+            archive.forEach(
+                (task) => {
+
+
+                    const element =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    element.classList.add(
+                        "task",
+                        "gray"
+                    );
+
+
+                    const date =
+                        new Date(
+                            task.date
+                        ).toLocaleString(
+                            "pl-PL"
+                        );
+
+
+                    element.innerHTML =
+                        `
+                        <b>${date}</b>
+                        <br>
+                        ${escapeHTML(task.desc)}
+                        `;
+
+
+                    archiveList.appendChild(
+                        element
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* =========================
+           WIDOCZNOŚĆ ARCHIWUM
+        ========================= */
+
+        if (showArchive) {
+
+            archiveList.classList.remove(
+                "hidden"
+            );
+
+        }
+        else {
+
+            archiveList.classList.add(
+                "hidden"
+            );
+
+        }
+
+
+    }
+    catch (error) {
+
+
+        console.error(
+            "BŁĄD ODCZYTU FIREBASE:",
+            error
+        );
+
+
+        taskList.innerHTML =
+            `
+            <div class="task red">
+                Nie można pobrać zadań z Firebase.
+                <br><br>
+                ${escapeHTML(error.message)}
+            </div>
+            `;
+
     }
 
-    active.sort((a,b) => new Date(a.date)-new Date(b.date));
+}
 
-    const today = new Date();
-    const sevenDaysLater = new Date();
-    sevenDaysLater.setDate(today.getDate()+7);
-    const upcoming7 = active.filter(t => {
-        const d = new Date(t.date);
-        return d >= today && d <= sevenDaysLater;
-    });
 
-    active.forEach(task => {
-        let el = document.createElement('div');
-        el.classList.add('task');
-        if(upcoming7.includes(task)){
-            const index = upcoming7.indexOf(task);
-            if(index < 3) el.classList.add('red');
-            else if(index < 7) el.classList.add('orange');
-            else el.classList.add('green');
-        } else {
-            el.classList.add('green');
+
+/* =====================================================
+   ARCHIWUM — PRZYCISK
+===================================================== */
+
+archiveBtn.addEventListener(
+    "click",
+    async () => {
+
+
+        showArchive =
+            !showArchive;
+
+
+        if (showArchive) {
+
+
+            archiveBtn.textContent =
+                "Ukryj archiwum";
+
+
+            archiveList.classList.remove(
+                "hidden"
+            );
+
+
+            await render();
+
+
         }
-        el.innerHTML = `<b>${new Date(task.date).toLocaleString()}</b><br>${task.desc.substring(0,50)}`;
-        el.onclick = ()=>alert(task.desc);
-        taskList.appendChild(el);
-    });
+        else {
 
-    archive.forEach(task => {
-        let el = document.createElement('div');
-        el.classList.add('task','gray');
-        el.innerHTML = `<b>${new Date(task.date).toLocaleString()}</b><br>${task.desc}`;
-        archiveList.appendChild(el);
-    });
 
-    archiveList.style.display = showArchive ? 'block' : 'none';
+            archiveBtn.textContent =
+                "Archiwum";
+
+
+            archiveList.classList.add(
+                "hidden"
+            );
+
+        }
+
+    }
+);
+
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeHTML(text) {
+
+    return String(text)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
 }
 
-// Dodawanie zadania
-document.getElementById('saveBtn').addEventListener('click', async () => {
-    const date = document.getElementById('date').value;
-    const desc = document.getElementById('desc').value;
-    if(!date || !desc) return alert('Uzupełnij dane');
-    await addDoc(collection(db, "tasks"), {date, desc, done:false});
-    closeModal();
-    render();
-});
 
-// Modal
-function openModal(){
-    const m = document.getElementById('modal');
-    m.classList.remove('hidden');
-    m.style.display = 'flex';
-}
-function closeModal(){
-    const m = document.getElementById('modal');
-    m.classList.add('hidden');
-    m.style.display = 'none';
-}
 
-document.getElementById('addBtn').onclick = openModal;
-document.getElementById('archiveBtn').onclick = () => {
-    showArchive = !showArchive;
-    document.getElementById('archiveList').classList.toggle('hidden');
-};
+/* =====================================================
+   START
+===================================================== */
 
-setInterval(render,5000);
 render();
+
+
+/* Automatyczne odświeżanie */
+
+setInterval(
+    render,
+    5000
+);
+
+
 </script>
 
 </body>
+
 </html>
+```
